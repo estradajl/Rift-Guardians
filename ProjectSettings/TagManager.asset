@@ -28,6 +28,7 @@ TagManager:
   - QDSUITextInputField
   - SamplesInfoPanel
   - QDSUIToggleCheckboxRadio
+  - Crossable
   layers:
   - Default
   - TransparentFX
@@ -35,7 +36,7 @@ TagManager:
   - Overlay UI
   - Water
   - UI
-  - Stencil Mask 1
+  - PortalWorld
   - Ground
   - 
   - 
