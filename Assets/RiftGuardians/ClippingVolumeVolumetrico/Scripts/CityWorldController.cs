@@ -5,6 +5,12 @@ public class CityWorldController : MonoBehaviour
     [Header("Movement Settings")]
     public float moveSpeed = 2f;
 
+    [Header("Movement Bounds (XZ)")]
+    public Vector2 minBounds = new Vector2(-12f, -12f);
+    public Vector2 maxBounds = new Vector2(12f, 12f);
+
+    public bool IsAtBorder { get; private set; }
+
     [Header("Zoom Settings")]
     public float zoomSpeed = 4f;
     public float minScale = 0.5f;
@@ -17,6 +23,9 @@ public class CityWorldController : MonoBehaviour
     private Vector2 moveInput;
     private float targetZoom = 1f;
     private float currentZoom = 1f;
+    public float ZoomVelocity { get; private set; }
+    public Vector2 MoveInput => moveInput;
+
 
     void Start()
     {
@@ -40,9 +49,23 @@ public class CityWorldController : MonoBehaviour
         if (moveDir.sqrMagnitude > 0.0001f)
         {
             Vector3 delta = moveDir.normalized * moveSpeed * Time.deltaTime;
-            transform.position += delta;
+            Vector3 newPos = transform.position + delta;
+
+            // CLAMP de movimiento
+            float clampedX = Mathf.Clamp(newPos.x, minBounds.x, maxBounds.x);
+            float clampedZ = Mathf.Clamp(newPos.z, minBounds.y, maxBounds.y);
+
+            // Detecta borde
+            IsAtBorder = (clampedX != newPos.x) || (clampedZ != newPos.z);
+
+            transform.position = new Vector3(clampedX, transform.position.y, clampedZ);
+        }
+        else
+        {
+            IsAtBorder = false;
         }
     }
+
 
     // ----------------------------------------------------
     // ZOOM — desde el pivot del clipping volume
@@ -51,6 +74,9 @@ public class CityWorldController : MonoBehaviour
     {
         float prevZoom = currentZoom;
         currentZoom = Mathf.Lerp(currentZoom, targetZoom, Time.deltaTime * zoomSpeed);
+        transform.localScale = Vector3.one * currentZoom;
+
+        ZoomVelocity = currentZoom - prevZoom; // valor positivo o negativo
 
         // Si no hay pivot, simplemente escala
         if (clippingPivot == null)

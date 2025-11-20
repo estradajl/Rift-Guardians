@@ -38,9 +38,6 @@
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            // -----------------------------------------
-            // PROPERTIES
-            // -----------------------------------------
             float4 _FillColor;
             float4 _EdgeColor;
             float _EdgePower;
@@ -51,9 +48,6 @@
             float3 _ClipSize;
             float _Thickness;
 
-            // -----------------------------------------
-            // STRUCTS
-            // -----------------------------------------
             struct Attributes
             {
                 float4 positionOS : POSITION;
@@ -67,9 +61,6 @@
                 float3 normalWS : TEXCOORD1;
             };
 
-            // -----------------------------------------
-            // SAME CLIP LOGIC AS YOUR LIT CLIPPING
-            // -----------------------------------------
             float GetClipDist(float3 worldPos)
             {
                 float3 local = worldPos - _ClipCenter;
@@ -86,16 +77,13 @@
                 else if (_ClipMode == 2) // hemisphere
                 {
                     if (local.y < 0)
-                        return 1.0; // fully outside below plane
+                        return 9999; // treat below plane as outside completely
                     return length(local) - _ClipSize.x;
                 }
 
-                return 1.0;
+                return 9999;
             }
 
-            // -----------------------------------------
-            // VERTEX
-            // -----------------------------------------
             Varyings Vert(Attributes IN)
             {
                 Varyings OUT;
@@ -105,30 +93,31 @@
                 return OUT;
             }
 
-            // -----------------------------------------
-            // FRAGMENT
-            // -----------------------------------------
             float4 Frag(Varyings IN) : SV_Target
             {
                 float clipDist = GetClipDist(IN.posWS);
 
-                // We want ONLY the cut surface:
-                // region INSIDE the clip volume but very close to its boundary
-                if (clipDist < -_Thickness)   // too deep inside → discard
+                //-----------------------------------------------------
+                // EXTERIOR ONLY LOGIC
+                // ----------------------------------------------------
+                
+                // interior (negative) → descartar SIEMPRE
+                if (clipDist < 0)
                     discard;
 
-                if (clipDist > _Thickness)    // fully outside → discard
+                // far outside → descartar
+                if (clipDist > _Thickness)
                     discard;
 
-                float t = saturate(1 - abs(clipDist / _Thickness));
+                // map outer 0 → thickness into fade 0→1
+                float t = 1 - saturate(clipDist / _Thickness);
 
-                // Base color
                 float4 col = _FillColor;
 
-                // Edge highlight
+                // add glow on the very border
                 col.rgb += _EdgeColor.rgb * pow(t, _EdgePower);
 
-                // Subtle animated effect
+                // subtle animated band
                 col.rgb += 0.05 * sin(IN.posWS.y * 5 + _Time.y * _ScrollSpeed);
 
                 col.a *= t;

@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class KeyboardTestInputSystemCity : MonoBehaviour
@@ -10,28 +10,30 @@ public class KeyboardTestInputSystemCity : MonoBehaviour
     private InputAction previousAction;   // Zoom Out
     private InputAction nextAction;       // Zoom In
 
-    [Header("Controller")]
-    public CityWorldController cityController;
+    [Header("Controllers")]
+    public CityWorldController cityController;    // Solo mueve la ciudad
 
     [Header("Camera")]
-    public Transform cameraTransform; // opcional (para orientar movimiento)
+    public Transform cameraTransform;
 
     [Header("Zoom Settings")]
-    public float zoomStep = 0.15f;    // cuanto zoom por pulsación
+    public float zoomStep = 0.15f;
 
     [Header("Debug")]
     public bool showDebug = true;
+    public Color debugColor = Color.cyan;
 
     private Vector2 move2D = Vector2.zero;
     private Vector3 move3D = Vector3.zero;
+    private float zoomInput = 0f;
 
     void OnEnable()
     {
-        var playerMap = inputActionsAsset.FindActionMap("Player", true);
+        var map = inputActionsAsset.FindActionMap("Player", true);
 
-        moveAction = playerMap.FindAction("Move", true);
-        previousAction = playerMap.FindAction("Previous", true); // Zoom OUT
-        nextAction = playerMap.FindAction("Next", true);     // Zoom IN
+        moveAction = map.FindAction("Move", true);
+        previousAction = map.FindAction("Previous", true);
+        nextAction = map.FindAction("Next", true);
 
         moveAction.Enable();
         previousAction.Enable();
@@ -58,73 +60,89 @@ public class KeyboardTestInputSystemCity : MonoBehaviour
     }
 
     // -------------------------------
-    // MOVIMIENTO
+    // MOVEMENT INPUT
     // -------------------------------
-
-    private void OnMovePerformed(InputAction.CallbackContext ctx)
+    void OnMovePerformed(InputAction.CallbackContext ctx)
     {
         move2D = ctx.ReadValue<Vector2>();
     }
 
-    private void OnMoveCanceled(InputAction.CallbackContext ctx)
+    void OnMoveCanceled(InputAction.CallbackContext ctx)
     {
         move2D = Vector2.zero;
     }
 
     // -------------------------------
-    // ZOOM
+    // ZOOM INPUT
     // -------------------------------
-
     private void OnZoomOut(InputAction.CallbackContext ctx)
     {
-        if (cityController != null)
-            cityController.AddZoom(-zoomStep);
+        zoomInput = -zoomStep;
     }
 
     private void OnZoomIn(InputAction.CallbackContext ctx)
     {
-        if (cityController != null)
-            cityController.AddZoom(+zoomStep);
+        zoomInput = zoomStep;
     }
 
     // -------------------------------
-
+    // MAIN UPDATE â†’ REAL CITY MOVEMENT
+    // -------------------------------
     void FixedUpdate()
     {
-        // Convertir a 3D
-        move3D = new Vector3(move2D.x, 0f, move2D.y);
+        if (!cityController) return;
 
-        // Orientar con la cámara
-        if (cameraTransform != null)
-        {
-            Vector3 camF = cameraTransform.forward;
-            camF.y = 0;
-            camF.Normalize();
+        // Convert movement relative to camera
+        move3D = ConvertMoveToWorld(move2D);
 
-            Vector3 camR = cameraTransform.right;
-            camR.y = 0;
-            camR.Normalize();
+        bool isMoving = move3D.sqrMagnitude > 0.0001f;
+        bool isZooming = Mathf.Abs(zoomInput) > 0.0001f;
 
-            move3D = camF * move2D.y + camR * move2D.x;
-        }
-
-        // Enviar movimiento al CityWorldController
-        if (cityController != null)
-        {
+        // --- Move City ---
+        if (isMoving)
             cityController.SetMoveInput(new Vector2(move3D.x, move3D.z));
-        }
+        else
+            cityController.SetMoveInput(Vector2.zero);
+
+        // --- Zoom City ---
+        if (isZooming)
+            cityController.AddZoom(zoomInput);
+
+        // Zoom lasts only 1 frame
+        zoomInput = 0;
     }
 
     // -------------------------------
-    // DEBUG
+    // Convert 2D input into world-space movement
     // -------------------------------
+    Vector3 ConvertMoveToWorld(Vector2 input)
+    {
+        if (!cameraTransform)
+            return new Vector3(input.x, 0, input.y);
 
+        Vector3 f = cameraTransform.forward;
+        f.y = 0;
+        f.Normalize();
+
+        Vector3 r = cameraTransform.right;
+        r.y = 0;
+        r.Normalize();
+
+        return f * input.y + r * input.x;
+    }
+
+    // -------------------------------
+    // DEBUG GUI
+    // -------------------------------
     void OnGUI()
     {
         if (!showDebug) return;
 
-        GUI.Label(new Rect(10, 10, 400, 25), $"Move 2D: {move2D}");
-        GUI.Label(new Rect(10, 30, 400, 25), $"Move 3D: {move3D}");
-        GUI.Label(new Rect(10, 50, 400, 25), $"Zoom: {cityController?.transform.localScale.x:F2}");
+        GUI.color = debugColor;
+
+        GUI.Label(new Rect(10, 10, 600, 25), $"Move2D: {move2D}");
+        GUI.Label(new Rect(10, 30, 600, 25), $"Move3D: {move3D}");
+        GUI.Label(new Rect(10, 50, 600, 25), $"Zoom Frame: {zoomInput}");
+        GUI.Label(new Rect(10, 70, 600, 25), $"ZoomVelocity: {cityController.ZoomVelocity:F4}");
     }
 }

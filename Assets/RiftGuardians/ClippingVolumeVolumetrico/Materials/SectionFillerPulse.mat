@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FillerClipping
-  m_Shader: {fileID: 4800000, guid: 8dcc1defadc41d641948828dfc91cf65, type: 3}
+  m_Name: SectionFillerPulse
+  m_Shader: {fileID: 4800000, guid: d10b144e6089b924b9eb6a0f8f7289b7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -111,7 +111,8 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
-    - _EdgePower: 4.91
+    - _EdgePower: 0.38
+    - _EdgeThickness: 0.242
     - _EnvironmentReflections: 1
     - _FresnelPower: 0.63
     - _GlossMapScale: 0
@@ -120,26 +121,27 @@ Material:
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
+    - _PulseSpeed: 2.83
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _ScrollSpeed: 1
+    - _ScrollSpeed: 2.81
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
-    - _Thickness: 1.38
+    - _Thickness: 0.5
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _ClipCenter: {r: 0, g: 0, b: 0, a: 0}
-    - _ClipSize: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    - _ClipSize: {r: 1, g: 1, b: 1, a: 0}
     - _Color: {r: 0, g: 0, b: 0, a: 1}
-    - _EdgeColor: {r: 1, g: 0, b: 0.047080994, a: 1}
+    - _EdgeColor: {r: 0.87253267, g: 0.98742133, b: 0.96637034, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _FillColor: {r: 0.14779866, g: 1, b: 1, a: 0.25490198}
+    - _FillColor: {r: 0.13521993, g: 0.9633957, b: 1, a: 0.2509804}
     - _FresnelColor: {r: 0.19999996, g: 1, b: 1, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
